@@ -1,0 +1,64 @@
+plugins {
+    id 'java'
+}
+
+version '1.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+repositories {
+    mavenCentral()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+        }
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.compilerArgs.addAll(['--release', '21'])
+}
+
+task serverJar(type: Jar) {
+    archiveFileName = 'server.jar'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    manifest {
+        attributes 'Main-Class': 'server.server'
+    }
+
+    from sourceSets.main.output
+    include 'server/**'
+
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+task clientJar(type: Jar) {
+    archiveFileName = 'client.jar'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    manifest {
+        attributes 'Main-Class': 'client.client'
+    }
+
+    from sourceSets.main.output
+    include 'client/**'
+
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+task buildAll {
+    dependsOn serverJar, clientJar
+}
+
